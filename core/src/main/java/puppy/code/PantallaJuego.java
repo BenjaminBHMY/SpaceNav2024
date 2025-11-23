@@ -6,6 +6,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import java.util.ArrayList;
 
 public class PantallaJuego implements Screen {
 
@@ -58,12 +59,52 @@ public class PantallaJuego implements Screen {
 
         int puntosFrame = gestorJuego.actualizar(delta, batch, nave);
         score += puntosFrame;
+        
+        //aumento de arma al llegar a cierto puntaje
+        if (score >= 40)  nave.desbloquearNivel(2); // Doble
+        if (score >= 100) nave.desbloquearNivel(3); // Triple
+        if (score >= 200) nave.desbloquearNivel(4); // Linea
+        if (score >= 230) nave.desbloquearNivel(5); // X
+        if (score >= 280) nave.desbloquearNivel(6); // Abanico
+        if (score >= 310) nave.desbloquearNivel(7); // Circular
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && !nave.estaDestruido()) {
-             Bullet b = nave.disparar();
-             if (b != null) {
-                 gestorJuego.agregarBalaJugador(b);
-             }
+        //control de teclas
+        if (!nave.estaDestruido()) {
+            
+            // ESPACIO: Básico (Nivel 1 - Siempre disponible)
+            if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+                dispararConEstrategia(new DisparoBasico());
+            }
+
+            // tecla Z: Doble (Nivel 2)
+            if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
+                if (nave.getNivelArmaDesbloqueado() >= 2) dispararConEstrategia(new DisparoDoble());
+            }
+
+            // tecla X: Triple (Nivel 3)
+            if (Gdx.input.isKeyJustPressed(Input.Keys.X)) {
+                if (nave.getNivelArmaDesbloqueado() >= 3) dispararConEstrategia(new DisparoTriple());
+            }
+
+            // tecla C: Largo (Nivel 4)
+            if (Gdx.input.isKeyJustPressed(Input.Keys.C)) {
+                if (nave.getNivelArmaDesbloqueado() >= 4) dispararConEstrategia(new DisparoLinea());
+            }
+
+            // tecla V: Abanico (Nivel 5)
+            if (Gdx.input.isKeyJustPressed(Input.Keys.V)) {
+                if (nave.getNivelArmaDesbloqueado() >= 5) dispararConEstrategia(new DisparoX());
+            }
+
+            // tecla B: Cruz (Nivel 6)
+            if (Gdx.input.isKeyJustPressed(Input.Keys.B)) {
+                if (nave.getNivelArmaDesbloqueado() >= 6) dispararConEstrategia(new DisparoAbanico());
+            }
+
+            // tecla N: Circular
+            if (Gdx.input.isKeyJustPressed(Input.Keys.N)) {
+                if (nave.getNivelArmaDesbloqueado() >= 7) dispararConEstrategia(new DisparoCircular());
+            }
         }
 
         if (nave.estaDestruido()) {
@@ -76,7 +117,7 @@ public class PantallaJuego implements Screen {
         
         if (gestorJuego.nivelCompletado()) {
             game.setScreen(new PantallaJuego(game, ronda + 1, nave.getVidas(), score, 
-                                             3, 3, 10 + ronda * 2));
+                                             3, 3, 5 + ronda * 2));
             dispose();
         }
 
@@ -114,5 +155,20 @@ public class PantallaJuego implements Screen {
 
     @Override
     public void hide() {
+    }
+    //disparo con distinta tecla
+    private void dispararConEstrategia(EstrategiaDisparo nuevaEstrategia) {
+        // cambiamos la estrategia de la nave
+        nave.setEstrategia(nuevaEstrategia);
+        
+        // pedir a la nave que dispare con esa nueva estrategia
+        java.util.ArrayList<Bullet> balas = nave.disparar();
+        
+        // agregamos las balas al juego
+        if (balas != null) {
+            for (Bullet b : balas) {
+                gestorJuego.agregarBalaJugador(b);
+            }
+        }
     }
 }

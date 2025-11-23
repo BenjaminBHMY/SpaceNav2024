@@ -6,6 +6,7 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
+import java.util.ArrayList;
 
 public class Nave4 extends EntidadMovil implements IDestructible {
 
@@ -13,16 +14,20 @@ public class Nave4 extends EntidadMovil implements IDestructible {
     private boolean herido = false;
     private int tiempoHerido;
     private int tiempoHeridoMax = 50;
+    private EstrategiaDisparo estrategia;
     
     private Sound sonidoHerido;
     private Sound soundBala;
     private Texture txBala;
+    
+    private int nivelArmaDesbloqueado = 1;
 
     public Nave4(int x, int y, Texture tx, Sound soundChoque, Texture txBala, Sound soundBala) {
         super(x, y, 0, 0, tx); // Velocidad inicial 0
         this.sonidoHerido = soundChoque;
         this.soundBala = soundBala;
         this.txBala = txBala;
+        this.estrategia = new DisparoBasico();
     }
 
     @Override
@@ -68,18 +73,8 @@ public class Nave4 extends EntidadMovil implements IDestructible {
         }
     }
 
-    public Bullet disparar() {
-        float anguloRadianes = (float) Math.toRadians(spr.getRotation() + 90);
-        float balaVel = 7.0f;
-        
-        float velX = (float) Math.cos(anguloRadianes) * balaVel;
-        float velY = (float) Math.sin(anguloRadianes) * balaVel;
-        
-        float x = spr.getX() + spr.getWidth()/2 - 5;
-        float y = spr.getY() + spr.getHeight()/2 - 5;
-
-        soundBala.play();
-        return new Bullet(x, y, velX, velY, txBala);
+    public ArrayList<Bullet> disparar() {
+        return estrategia.disparar(this);
     }
 
     public boolean checkCollision(EntidadMovil b) {
@@ -121,4 +116,39 @@ public class Nave4 extends EntidadMovil implements IDestructible {
     public int getVidas() { return vidas; }
     public void setVidas(int vidas) { this.vidas = vidas; }
     public boolean estaHerido() { return herido; }
+    
+    public void setEstrategia(EstrategiaDisparo e){
+        this.estrategia = e;
+    }
+    
+    public float getRotation()
+    {
+        return spr.getRotation();
+    }
+
+    public float getWidth() {
+        return spr.getWidth();
+    }
+
+    public float getHeight() {
+        return spr.getHeight();
+    }
+    
+    public EstrategiaDisparo getEstrategia()
+    {
+        return this.estrategia;
+    }
+    
+    public void desbloquearNivel(int nuevoNivel) 
+    {
+        // solo subimos de nivel, nunca bajamos
+        if (nuevoNivel > this.nivelArmaDesbloqueado) {
+            this.nivelArmaDesbloqueado = nuevoNivel;
+            System.out.println("¡NUEVO NIVEL DE ARMA DESBLOQUEADO: " + nuevoNivel + "!");
+        }
+    }
+    public int getNivelArmaDesbloqueado() 
+    {
+        return this.nivelArmaDesbloqueado;
+    }
 }
