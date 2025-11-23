@@ -10,13 +10,15 @@ public class Bullet extends EntidadMovil {
     }
     
     @Override
-    public void update() {
-        spr.setPosition(spr.getX() + xSpeed, spr.getY() + ySpeed);
-        
-        if (spr.getX() < 0 || spr.getX() + spr.getWidth() > Gdx.graphics.getWidth()) {
-            destroyed = true;
-        }
-        if (spr.getY() < 0 || spr.getY() + spr.getHeight() > Gdx.graphics.getHeight()) {
+    protected void mover() {
+        spr.translate(xSpeed, ySpeed);
+    }
+
+    @Override
+    protected void verificarLimites() {
+        // Destruir al salir
+        if (spr.getX() < 0 || spr.getX() + spr.getWidth() > Gdx.graphics.getWidth() ||
+            spr.getY() < 0 || spr.getY() + spr.getHeight() > Gdx.graphics.getHeight()) {
             destroyed = true;
         }
     }

@@ -1,10 +1,8 @@
 package puppy.code;
+
 import java.util.ArrayList;
-/**
- *
- * @author Hp
- */
+
 public interface EstrategiaDisparo {
-    public ArrayList<Bullet> disparar(Nave4 nave);
-    
+    // Actualizamos la firma para recibir la lista donde guardar las balas
+    void disparar(ArrayList<Bullet> balas, Nave4 nave);
 }

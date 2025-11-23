@@ -9,40 +9,51 @@ import java.util.List;
 public class GestorJuego {
 
     private List<EntidadMovil> enemigos;
-    private List<Bullet> balasJugador;
-    private List<Bullet> balasEnemigas;
+    private ArrayList<Bullet> balasJugador;
+    private ArrayList<Bullet> balasEnemigas;
     private GestorRecursos recursos;
+    private FabricaAmenazas fabricaAmenazas;
+    
+    private int rondaActual;
 
     public GestorJuego() {
         this.recursos = GestorRecursos.getInstance();
         this.enemigos = new ArrayList<>();
         this.balasJugador = new ArrayList<>();
         this.balasEnemigas = new ArrayList<>();
+        this.fabricaAmenazas = new AmenazasNivelBajo(); 
+        this.rondaActual = 1;
     }
 
-    public void iniciarNivel(int cantAsteroides, int velX, int velY) {
+    public void iniciarNivel(int cantAsteroides, int ronda) {
         enemigos.clear();
         balasJugador.clear();
         balasEnemigas.clear();
+        
+        this.rondaActual = ronda; 
 
+        // Selección de fábrica según ronda
+        if (ronda < 3) {
+            this.fabricaAmenazas = new AmenazasNivelBajo();
+        } else {
+            this.fabricaAmenazas = new AmenazasNivelAlto();
+        }
+
+        // Crear Asteroides iniciales
         for (int i = 0; i < cantAsteroides; i++) {
-            float x = MathUtils.random(0, Gdx.graphics.getWidth());
-            float y = MathUtils.random(0, Gdx.graphics.getHeight());
-            float vx = velX + MathUtils.random(-2, 2);
-            float vy = velY + MathUtils.random(-2, 2);
-
-            enemigos.add(new Ball2(x, y, vx, vy, recursos.getTxAsteroide()));
+            enemigos.add(fabricaAmenazas.crearAsteroide());
         }
     }
-
-    public void agregarBalaJugador(Bullet b) {
-        balasJugador.add(b);
+    
+    public ArrayList<Bullet> getBalasJugador() {
+        return balasJugador;
     }
 
-    public int actualizar(float delta, SpriteBatch batch, Nave4 nave) {
+    public int actualizar(float delta, SpriteBatch batch, Nave4 nave, int scoreActual) {
         int puntosGanados = 0;
 
-        spawnEnemigosAleatorios();
+        spawnEnemigos();
+        verificarEvolucionArmas(nave, scoreActual);
 
         for (int i = 0; i < enemigos.size(); i++) {
             EntidadMovil e = enemigos.get(i);
@@ -68,7 +79,7 @@ public class GestorJuego {
                 enemigos.remove(i--);
                 recursos.getSndExplosion().play();
                 puntosGanados += (e instanceof Ovni) ? 50 : 10;
-            } else if (e.isDestroyed()) {
+            } else if (e.isDestroyed()) { 
                 enemigos.remove(i--);
             }
         }
@@ -79,18 +90,42 @@ public class GestorJuego {
         return puntosGanados;
     }
 
-    private void spawnEnemigosAleatorios() {
-        if (MathUtils.random(0, 500) < 2) {
-            boolean grande = MathUtils.randomBoolean();
-            float x = MathUtils.random(0, Gdx.graphics.getWidth());
-            float y = MathUtils.random(0, Gdx.graphics.getHeight());
-            enemigos.add(new Ovni(x, y, grande, recursos.getTxOvni()));
-        }
+    private void verificarEvolucionArmas(Nave4 nave, int score) {
+        if (score >= 600) nave.desbloquearEstrategia(new DisparoCircular());
+        else if (score >= 500) nave.desbloquearEstrategia(new DisparoAbanico());
+        else if (score >= 400) nave.desbloquearEstrategia(new DisparoX());
+        else if (score >= 300) nave.desbloquearEstrategia(new DisparoLinea());
+        else if (score >= 200) nave.desbloquearEstrategia(new DisparoTriple());
+        else if (score >= 100) nave.desbloquearEstrategia(new DisparoDoble());
+    }
 
-        if (MathUtils.random(0, 600) < 1) {
-            float x = -50;
-            float y = MathUtils.random(0, Gdx.graphics.getHeight());
-            enemigos.add(new AgujeroNegro(x, y, 3, 0, recursos.getTxAgujero()));
+    private int contarOvnisVivos() {
+        int count = 0;
+        for (EntidadMovil e : enemigos) {
+            if (e instanceof Ovni) count++;
+        }
+        return count;
+    }
+
+    private void spawnEnemigos() {
+        
+        int maxOvnisSimultaneos = 1 + (rondaActual / 2); 
+        
+        if (contarOvnisVivos() < maxOvnisSimultaneos) {
+            if (MathUtils.random(0, 500) < 2) {
+                enemigos.add(fabricaAmenazas.crearEnemigo());
+            }
+        }
+        
+        if (MathUtils.random(0, 400) < 1) { // Aumenté prob. para que los veas
+             float x = MathUtils.random(50, Gdx.graphics.getWidth() - 50); 
+             float y = MathUtils.random(50, Gdx.graphics.getHeight() - 50);
+             
+             // Velocidad lenta
+             float vx = MathUtils.random(-1f, 1f);
+             float vy = MathUtils.random(-1f, 1f);
+             
+             enemigos.add(new AgujeroNegro(x, y, vx, vy, recursos.getTxAgujero()));
         }
     }
 
@@ -103,6 +138,7 @@ public class GestorJuego {
 
             for (int j = 0; j < enemigos.size(); j++) {
                 EntidadMovil e = enemigos.get(j);
+                // Solo chocamos con cosas destructibles
                 if (e instanceof IDestructible) {
                     if (b.getArea().overlaps(e.getArea())) {
                         aplicarDano((IDestructible) e, 1);
@@ -147,6 +183,12 @@ public class GestorJuego {
     }
 
     public boolean nivelCompletado() {
-        return enemigos.isEmpty();
+        
+        for (EntidadMovil e : enemigos) {
+            if (e instanceof IDestructible) {
+                return false; // Aún queda alguien vivo
+            }
+        }
+        return true; // Solo quedan agujeros negros o nada
     }
 }

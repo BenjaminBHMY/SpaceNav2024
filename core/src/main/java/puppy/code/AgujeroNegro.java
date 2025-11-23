@@ -15,14 +15,21 @@ public class AgujeroNegro extends EntidadMovil {
     }
 
     @Override
-    public void update() {
+    protected void mover() {
         spr.translate(xSpeed, ySpeed);
+    }
 
+    @Override
+    protected void comportamientoEspecifico() {
+        // HOOK: Rotación única
         spr.rotate(velocidadRotacionPropia);
+    }
 
+    @Override
+    protected void verificarLimites() {
+        // Destruir al salir
         if (spr.getX() > Gdx.graphics.getWidth() || spr.getX() + spr.getWidth() < 0 ||
             spr.getY() > Gdx.graphics.getHeight() || spr.getY() + spr.getHeight() < 0) {
-            
             this.destroyed = true;
         }
     }

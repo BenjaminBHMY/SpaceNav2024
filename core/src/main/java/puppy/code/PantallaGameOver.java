@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.graphics.Texture;
 
 
 public class PantallaGameOver implements Screen {
@@ -27,13 +28,17 @@ public class PantallaGameOver implements Screen {
 		game.getBatch().setProjectionMatrix(camera.combined);
 
 		game.getBatch().begin();
-		game.getFont().draw(game.getBatch(), "Game Over !!! ", 120, 400,400,1,true);
-		game.getFont().draw(game.getBatch(), "Pincha en cualquier lado para reiniciar ...", 100, 300);
-	
+                
+                Texture t = GestorRecursos.getInstance().getTxGameOver();
+                if (t != null) {
+                    // Estira la imagen para cubrir todo el ancho y alto de la vista de la cámara
+                    game.getBatch().draw(t, 0, 0, camera.viewportWidth, camera.viewportHeight);
+                }
+                
 		game.getBatch().end();
 
 		if (Gdx.input.isTouched() || Gdx.input.isKeyJustPressed(Input.Keys.ANY_KEY)) {
-			Screen ss = new PantallaJuego(game,1,3,0,1,1,10);
+                        Screen ss = new PantallaJuego(game, 1, 3, 0, 1, 1, 10, null);
 			ss.resize(1200, 800);
 			game.setScreen(ss);
 			dispose();

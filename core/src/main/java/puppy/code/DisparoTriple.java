@@ -1,32 +1,27 @@
 package puppy.code;
+
 import com.badlogic.gdx.math.MathUtils;
 import java.util.ArrayList;
-/**
- *
- * @author Hp
- */
-public class DisparoTriple implements EstrategiaDisparo
-{
+
+public class DisparoTriple implements EstrategiaDisparo {
+
     @Override
-    public ArrayList<Bullet> disparar(Nave4 nave) {
-        ArrayList<Bullet> balas = new ArrayList<>();
-        
+    public void disparar(ArrayList<Bullet> balas, Nave4 nave) {
         float anguloBase = nave.getRotation() + 90;
         float balaVel = 7.0f;
-        float x = nave.getX() + nave.getWidth()/2 - 5;
-        float y = nave.getY() + nave.getHeight()/2 - 5;
+        
+        float x = nave.getX() + nave.getWidth() / 2 - 5;
+        float y = nave.getY() + nave.getHeight() / 2 - 5;
 
-        // Generamos 3 balas con ángulos distintos (-15, 0, +15 grados)
+        // Disparar 3 balas con pequeña variación de ángulo (-10, 0, +10 grados)
         for (int i = -1; i <= 1; i++) {
-            float anguloActual = (float) Math.toRadians(anguloBase + (i * 15));
+            float angulo = (float) Math.toRadians(anguloBase + (i * 10));
             
-            float velX = (float) Math.cos(anguloActual) * balaVel;
-            float velY = (float) Math.sin(anguloActual) * balaVel;
+            float velX = (float) Math.cos(angulo) * balaVel;
+            float velY = (float) Math.sin(angulo) * balaVel;
             
-            balas.add(new Bullet(x, y, velX, velY, GestorRecursos.getInstance().getTxBala()));
+            Bullet b = new Bullet(x, y, velX, velY, GestorRecursos.getInstance().getTxBala());
+            balas.add(b);
         }
-
-        GestorRecursos.getInstance().getSndDisparo().play();
-        return balas;
     }
 }

@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.graphics.Texture;
 
 
 public class PantallaMenu implements Screen {
@@ -27,13 +28,16 @@ public class PantallaMenu implements Screen {
 		game.getBatch().setProjectionMatrix(camera.combined);
 
 		game.getBatch().begin();
-		game.getFont().draw(game.getBatch(), "Bienvenido a Space Navigation !", 140, 400);
-		game.getFont().draw(game.getBatch(), "Pincha en cualquier lado o presiona cualquier tecla para comenzar ...", 100, 300);
-	
+                Texture t = GestorRecursos.getInstance().getTxInicio();
+                if (t != null) {
+                    // Usamos las dimensiones de la cámara para asegurar que llene la pantalla
+                    game.getBatch().draw(t, 0, 0, camera.viewportWidth, camera.viewportHeight);
+                }
+		
 		game.getBatch().end();
 
 		if (Gdx.input.isTouched() || Gdx.input.isKeyJustPressed(Input.Keys.ANY_KEY)) {
-			Screen ss = new PantallaJuego(game,1,3,0,1,1,5);
+                        Screen ss = new PantallaJuego(game, 1, 3, 0, 1, 1, 10, null);
 			ss.resize(1200, 800);
 			game.setScreen(ss);
 			dispose();

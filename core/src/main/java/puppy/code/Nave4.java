@@ -14,43 +14,47 @@ public class Nave4 extends EntidadMovil implements IDestructible {
     private boolean herido = false;
     private int tiempoHerido;
     private int tiempoHeridoMax = 50;
-    private EstrategiaDisparo estrategia;
+    
+    private ArrayList<EstrategiaDisparo> inventarioArmas;
+    private int indiceArmaActual;
     
     private Sound sonidoHerido;
     private Sound soundBala;
-    private Texture txBala;
-    
-    private int nivelArmaDesbloqueado = 1;
 
     public Nave4(int x, int y, Texture tx, Sound soundChoque, Texture txBala, Sound soundBala) {
-        super(x, y, 0, 0, tx); // Velocidad inicial 0
+        super(x, y, 0, 0, tx);
         this.sonidoHerido = soundChoque;
         this.soundBala = soundBala;
-        this.txBala = txBala;
-        this.estrategia = new DisparoBasico();
+        
+        // Inicializar inventario
+        this.inventarioArmas = new ArrayList<>();
+        this.inventarioArmas.add(new DisparoBasico());
+        this.indiceArmaActual = 0;
+    }
+
+    
+    @Override
+    protected void mover() {
+        // Lógica de movimiento (Rotación y Empuje)
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) spr.rotate(4.0f);
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) spr.rotate(-4.0f);
+        if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
+            float rad = (float) Math.toRadians(spr.getRotation() + 90);
+            xSpeed += Math.cos(rad) * 0.2f;
+            ySpeed += Math.sin(rad) * 0.2f;
+        }
+        
+        // Fricción
+        xSpeed *= 0.98f;
+        ySpeed *= 0.98f;
+        
+        // Aplicar velocidad
+        spr.translate(xSpeed, ySpeed);
     }
 
     @Override
-    public void update() {
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) {
-            spr.rotate(4.0f);
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) {
-            spr.rotate(-4.0f);
-        }
-
-        if (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W)) {
-            float anguloRadianes = (float) Math.toRadians(spr.getRotation() + 90);
-            
-            xSpeed += Math.cos(anguloRadianes) * 0.2f; // Aceleración
-            ySpeed += Math.sin(anguloRadianes) * 0.2f;
-        }
-
-        xSpeed *= 0.98f;
-        ySpeed *= 0.98f;
-
-        spr.translate(xSpeed, ySpeed);
-
+    protected void verificarLimites() {
+        // Screen Wrapping (Pantalla Envolvente)
         if (spr.getX() > Gdx.graphics.getWidth()) spr.setX(-spr.getWidth());
         else if (spr.getX() + spr.getWidth() < 0) spr.setX(Gdx.graphics.getWidth());
         
@@ -59,26 +63,49 @@ public class Nave4 extends EntidadMovil implements IDestructible {
     }
 
     @Override
-    public void draw(SpriteBatch batch) {
-        if (!herido) {
-            super.draw(batch);
-        } else {
-            float xOriginal = spr.getX();
-            spr.setX(xOriginal + MathUtils.random(-2, 2));
-            super.draw(batch);
-            spr.setX(xOriginal);
-            
-            tiempoHerido--;
-            if (tiempoHerido <= 0) herido = false;
+    protected void comportamientoEspecifico() {
+        // Lógica única de la nave: Cambiar arma con tecla 'C'
+        if (Gdx.input.isKeyJustPressed(Input.Keys.C)) {
+            cambiarArma();
+        }
+    }
+    
+    
+    private void cambiarArma() {
+        if (inventarioArmas.size() > 1) {
+            indiceArmaActual++;
+            if (indiceArmaActual >= inventarioArmas.size()) {
+                indiceArmaActual = 0;
+            }
         }
     }
 
-    public ArrayList<Bullet> disparar() {
-        return estrategia.disparar(this);
+    public void desbloquearEstrategia(EstrategiaDisparo nuevaEstrategia) {
+        boolean yaLaTiene = false;
+        for (EstrategiaDisparo e : inventarioArmas) {
+            if (e.getClass() == nuevaEstrategia.getClass()) {
+                yaLaTiene = true;
+                break;
+            }
+        }
+        if (!yaLaTiene) {
+            inventarioArmas.add(nuevaEstrategia);
+        }
+    }
+    
+    public EstrategiaDisparo getEstrategia() {
+        return inventarioArmas.get(indiceArmaActual);
     }
 
+    public void disparar(ArrayList<Bullet> balas) {
+        getEstrategia().disparar(balas, this);
+        soundBala.play();
+    }
+
+    
     public boolean checkCollision(EntidadMovil b) {
         if (!herido && b.getArea().overlaps(spr.getBoundingRectangle())) {
+            // Física de rebote simple
             if (xSpeed == 0) xSpeed += b.getXSpeed() / 2;
             if (b.getXSpeed() == 0) b.setXSpeed(b.getXSpeed() + xSpeed / 2);
             xSpeed = -xSpeed;
@@ -89,10 +116,11 @@ public class Nave4 extends EntidadMovil implements IDestructible {
             ySpeed = -ySpeed;
             b.setYSpeed(-b.getYSpeed());
             
-            return true; 
+            return true;
         }
         return false;
     }
+
 
     @Override
     public void recibirDano(int cantidad) {
@@ -101,54 +129,41 @@ public class Nave4 extends EntidadMovil implements IDestructible {
             herido = true;
             tiempoHerido = tiempoHeridoMax;
             sonidoHerido.play();
-            
-            if (vidas <= 0) {
-                destroyed = true;
-            }
+            if (vidas <= 0) destroyed = true;
         }
     }
 
     @Override
-    public boolean estaDestruido() {
-        return destroyed;
-    }
+    public boolean estaDestruido() { return destroyed; }
 
-    public int getVidas() { return vidas; }
-    public void setVidas(int vidas) { this.vidas = vidas; }
-    public boolean estaHerido() { return herido; }
-    
-    public void setEstrategia(EstrategiaDisparo e){
-        this.estrategia = e;
-    }
-    
-    public float getRotation()
-    {
-        return spr.getRotation();
-    }
-
-    public float getWidth() {
-        return spr.getWidth();
-    }
-
-    public float getHeight() {
-        return spr.getHeight();
-    }
-    
-    public EstrategiaDisparo getEstrategia()
-    {
-        return this.estrategia;
-    }
-    
-    public void desbloquearNivel(int nuevoNivel) 
-    {
-        // solo subimos de nivel, nunca bajamos
-        if (nuevoNivel > this.nivelArmaDesbloqueado) {
-            this.nivelArmaDesbloqueado = nuevoNivel;
-            System.out.println("¡NUEVO NIVEL DE ARMA DESBLOQUEADO: " + nuevoNivel + "!");
+    @Override
+    public void draw(SpriteBatch batch) {
+        if (!herido) {
+            super.draw(batch);
+        } else {
+            // Efecto de daño
+            float xOriginal = spr.getX();
+            spr.setX(xOriginal + MathUtils.random(-2, 2));
+            super.draw(batch);
+            spr.setX(xOriginal);
+            tiempoHerido--;
+            if (tiempoHerido <= 0) herido = false;
         }
     }
-    public int getNivelArmaDesbloqueado() 
-    {
-        return this.nivelArmaDesbloqueado;
+    
+    // Método para reiniciar la posición al cambiar de nivel
+    // conservando el inventario y la vida.
+    public void reposicionar() {
+        this.spr.setPosition(Gdx.graphics.getWidth()/2 - 50, 30);
+        this.xSpeed = 0;
+        this.ySpeed = 0;
+        this.spr.setRotation(0);
+        // No tocamos 'inventarioArmas' ni 'indiceArmaActual' para que se guarden.
     }
+    
+    public int getVidas() { return vidas; }
+    public void setVidas(int vidas) { this.vidas = vidas; }
+    public float getRotation() { return spr.getRotation(); }
+    public float getWidth() { return spr.getWidth(); }
+    public float getHeight() { return spr.getHeight(); }
 }

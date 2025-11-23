@@ -20,41 +20,34 @@ public abstract class EntidadMovil {
         this.ySpeed = ySpeed;
     }
 
-    public abstract void update();
-
-    public void draw(SpriteBatch batch) {
-        spr.draw(batch);
+    public final void update() {
+        mover();
+        
+        comportamientoEspecifico();
+        
+        verificarLimites();
     }
 
-    public Rectangle getArea() {
-        return spr.getBoundingRectangle();
-    }
 
-    public boolean isDestroyed() {
-        return destroyed;
-    }
+    protected abstract void mover();
 
-    public float getX() {
-        return spr.getX();
-    }
+    protected void comportamientoEspecifico() {} 
 
-    public float getY() {
-        return spr.getY();
-    }
+    protected abstract void verificarLimites();
+
+    // --- Métodos Comunes ---
+    public void draw(SpriteBatch batch) { spr.draw(batch); }
+    public Rectangle getArea() { return spr.getBoundingRectangle(); }
+    public boolean isDestroyed() { return destroyed; }
+    public float getX() { return spr.getX(); }
+    public float getY() { return spr.getY(); }
+    public float getXSpeed() { return xSpeed; }
+    public float getYSpeed() { return ySpeed; }
+    public void setXSpeed(float x) { this.xSpeed = x; }
+    public void setYSpeed(float y) { this.ySpeed = y; }
     
-    public float getXSpeed() {
-        return xSpeed;
-    }
-    
-    public float getYSpeed() {
-        return ySpeed;
-    }
-    
-    public void setXSpeed(float xSpeed) {
-        this.xSpeed = xSpeed;
-    }
-    
-    public void setYSpeed(float ySpeed) {
-        this.ySpeed = ySpeed;
-    }
+    // Métodos utilitarios para las subclases
+    public float getRotation() { return spr.getRotation(); }
+    public float getWidth() { return spr.getWidth(); }
+    public float getHeight() { return spr.getHeight(); }
 }

@@ -15,6 +15,9 @@ public class GestorRecursos {
     private Texture txAsteroide;
     private Texture txOvni;
     private Texture txAgujero;
+    private Texture txFondo; 
+    private Texture txInicio;
+    private Texture txGameOver;
 
     private Sound sndChocar;
     private Sound sndHerido;
@@ -23,6 +26,9 @@ public class GestorRecursos {
     private Music musicaFondo;
 
     private GestorRecursos() {
+        txInicio = new Texture(Gdx.files.internal("inicio.jpeg")); 
+        txGameOver = new Texture(Gdx.files.internal("gameover.jpeg")); 
+        txFondo = new Texture(Gdx.files.internal("fondo.jpeg")); 
         txNave = new Texture(Gdx.files.internal("MainShip3.png"));
         txBala = new Texture(Gdx.files.internal("Rocket2.png"));
         txBalaEnemiga = new Texture(Gdx.files.internal("Rocket2.png"));
@@ -46,6 +52,14 @@ public class GestorRecursos {
         }
         return instance;
     }
+    
+    public Texture getTxFondo() {
+        return txFondo;
+    }
+    
+    public Texture getTxInicio() { return txInicio; }
+    
+    public Texture getTxGameOver() { return txGameOver; }
 
     public void reproducirMusica() {
         musicaFondo.play();
@@ -96,6 +110,9 @@ public class GestorRecursos {
     }
 
     public void dispose() {
+        txFondo.dispose(); 
+        if (txInicio != null) txInicio.dispose();
+        if (txGameOver != null) txGameOver.dispose();
         txNave.dispose();
         txBala.dispose();
         txBalaEnemiga.dispose();

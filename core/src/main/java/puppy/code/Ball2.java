@@ -10,21 +10,19 @@ public class Ball2 extends EntidadMovil implements IDestructible {
     }
 
     @Override
-    public void update() {
+    protected void mover() {
+        // Movimiento inercial simple
         spr.translate(xSpeed, ySpeed);
+    }
 
-        // Si sale por un lado, reaparece por el opuesto
-        if (spr.getX() > Gdx.graphics.getWidth()) {
-            spr.setX(-spr.getWidth());
-        } else if (spr.getX() + spr.getWidth() < 0) {
-            spr.setX(Gdx.graphics.getWidth());
-        }
-
-        if (spr.getY() > Gdx.graphics.getHeight()) {
-            spr.setY(-spr.getHeight());
-        } else if (spr.getY() + spr.getHeight() < 0) {
-            spr.setY(Gdx.graphics.getHeight());
-        }
+    @Override
+    protected void verificarLimites() {
+        // Lógica de Screen Wrapping
+        if (spr.getX() > Gdx.graphics.getWidth()) spr.setX(-spr.getWidth());
+        else if (spr.getX() + spr.getWidth() < 0) spr.setX(Gdx.graphics.getWidth());
+        
+        if (spr.getY() > Gdx.graphics.getHeight()) spr.setY(-spr.getHeight());
+        else if (spr.getY() + spr.getHeight() < 0) spr.setY(Gdx.graphics.getHeight());
     }
 
     @Override
@@ -33,7 +31,5 @@ public class Ball2 extends EntidadMovil implements IDestructible {
     }
 
     @Override
-    public boolean estaDestruido() {
-        return destroyed;
-    }
+    public boolean estaDestruido() { return destroyed; }
 }
