@@ -23,6 +23,10 @@ public class Nave4 extends EntidadMovil implements IDestructible {
 
     public Nave4(int x, int y, Texture tx, Sound soundChoque, Texture txBala, Sound soundBala) {
         super(x, y, 0, 0, tx);
+        
+        this.spr.setSize(40, 40);
+        this.spr.setOriginCenter();
+        
         this.sonidoHerido = soundChoque;
         this.soundBala = soundBala;
         
@@ -50,6 +54,18 @@ public class Nave4 extends EntidadMovil implements IDestructible {
         
         // Aplicar velocidad
         spr.translate(xSpeed, ySpeed);
+    }
+    
+    public void teletransportar() {
+        // 1. Elegir nueva posición aleatoria dentro de la pantalla
+        float newX = MathUtils.random(0, Gdx.graphics.getWidth() - getWidth());
+        float newY = MathUtils.random(0, Gdx.graphics.getHeight() - getHeight());
+        
+        // 2. Mover el sprite
+        spr.setPosition(newX, newY);
+        
+        this.xSpeed = 0;
+        this.ySpeed = 0;
     }
 
     @Override
@@ -131,6 +147,10 @@ public class Nave4 extends EntidadMovil implements IDestructible {
             sonidoHerido.play();
             if (vidas <= 0) destroyed = true;
         }
+    }
+    
+    public void agregarVida() {
+        this.vidas++;
     }
 
     @Override

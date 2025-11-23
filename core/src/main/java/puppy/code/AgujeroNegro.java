@@ -21,7 +21,6 @@ public class AgujeroNegro extends EntidadMovil {
 
     @Override
     protected void comportamientoEspecifico() {
-        // HOOK: Rotación única
         spr.rotate(velocidadRotacionPropia);
     }
 

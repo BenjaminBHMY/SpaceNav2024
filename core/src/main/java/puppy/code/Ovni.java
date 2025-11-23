@@ -17,7 +17,7 @@ public class Ovni extends EntidadMovil implements IDestructible {
 
         if (esGrande) {
             this.vidas = 5; 
-            this.spr.setSize(60, 60);
+            this.spr.setSize(70, 70);
             this.xSpeed = MathUtils.random(-1.0f, 1.0f); 
             this.ySpeed = MathUtils.random(-1.0f, 1.0f);
             this.tiempoEntreDisparos = 3.5f; 
@@ -62,7 +62,7 @@ public class Ovni extends EntidadMovil implements IDestructible {
 
         if (tiempoAcumulado >= tiempoEntreDisparos) {
             tiempoAcumulado = 0;
-
+            
             float origenX = spr.getX() + spr.getWidth() / 2;
             float origenY = spr.getY() + spr.getHeight() / 2;
             
@@ -76,8 +76,17 @@ public class Ovni extends EntidadMovil implements IDestructible {
             
             float velX = MathUtils.cos(angulo) * velBala;
             float velY = MathUtils.sin(angulo) * velBala;
+            
+            Bullet b = new Bullet(origenX, origenY, velX, velY, txBala);
+            
+            if (esGrande) {
+                b.setSize(60, 60); // Balas gigantes para el OVNI tanque
+            } else {
+                b.setSize(30, 30); // Balas medianas para el OVNI pequeño
+            }
 
-            return new Bullet(origenX, origenY, velX, velY, txBala);
+
+            return b;
         }
         return null;
     }
@@ -93,5 +102,9 @@ public class Ovni extends EntidadMovil implements IDestructible {
     @Override
     public boolean estaDestruido() {
         return destroyed;
+    }
+    
+    public int getPuntaje() {
+        return esGrande ? 50 : 25;
     }
 }

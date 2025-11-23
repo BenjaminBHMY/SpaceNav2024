@@ -7,6 +7,11 @@ public class Ball2 extends EntidadMovil implements IDestructible {
 
     public Ball2(float x, float y, float xSpeed, float ySpeed, Texture tx) {
         super(x, y, xSpeed, ySpeed, tx);
+        
+        float size = com.badlogic.gdx.math.MathUtils.random(30, 60);
+        this.spr.setSize(size, size);
+        
+        this.spr.setOriginCenter();
     }
 
     @Override

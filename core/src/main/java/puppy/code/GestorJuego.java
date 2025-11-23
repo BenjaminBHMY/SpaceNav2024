@@ -11,6 +11,7 @@ public class GestorJuego {
     private List<EntidadMovil> enemigos;
     private ArrayList<Bullet> balasJugador;
     private ArrayList<Bullet> balasEnemigas;
+    private List<EntidadMovil> powerups;
     private GestorRecursos recursos;
     private FabricaAmenazas fabricaAmenazas;
     
@@ -22,6 +23,7 @@ public class GestorJuego {
         this.balasJugador = new ArrayList<>();
         this.balasEnemigas = new ArrayList<>();
         this.fabricaAmenazas = new AmenazasNivelBajo(); 
+        this.powerups = new ArrayList<>();
         this.rondaActual = 1;
     }
 
@@ -29,6 +31,7 @@ public class GestorJuego {
         enemigos.clear();
         balasJugador.clear();
         balasEnemigas.clear();
+        powerups.clear(); 
         
         this.rondaActual = ronda; 
 
@@ -69,18 +72,47 @@ public class GestorJuego {
             }
 
             if (nave.checkCollision(e)) {
-                if (e instanceof IDestructible) {
-                    aplicarDano((IDestructible) e, 100);
+                
+                // CASO ESPECIAL: AGUJERO NEGRO
+                if (e instanceof AgujeroNegro) {
+                    nave.teletransportar();
+                    enemigos.remove(i--);
+                } 
+                // CASO ESTÁNDAR: ENEMIGOS FÍSICOS (Ovnis, Asteroides)
+                else {
+                    if (e instanceof IDestructible) {
+                        aplicarDano((IDestructible) e, 100);
+                    }
+                    aplicarDano(nave, 1);
                 }
-                aplicarDano(nave, 1);
             }
 
             if (e instanceof IDestructible && ((IDestructible) e).estaDestruido()) {
                 enemigos.remove(i--);
                 recursos.getSndExplosion().play();
-                puntosGanados += (e instanceof Ovni) ? 50 : 10;
+                if (e instanceof Ovni) {
+                    puntosGanados += ((Ovni) e).getPuntaje(); // 25 o 50
+                } else {
+                    puntosGanados += 10; // Asteroide
+                }
             } else if (e.isDestroyed()) { 
                 enemigos.remove(i--);
+            }
+        }
+        
+        for (int i = 0; i < powerups.size(); i++) {
+            EntidadMovil p = powerups.get(i);
+            p.update();
+            p.draw(batch);
+
+            if (nave.getArea().overlaps(p.getArea())) {
+                nave.agregarVida();
+
+                if (recursos.getSndVida() != null) {
+                    recursos.getSndVida().play();
+                }
+
+                powerups.remove(i--);
             }
         }
 
@@ -117,7 +149,15 @@ public class GestorJuego {
             }
         }
         
-        if (MathUtils.random(0, 400) < 1) { // Aumenté prob. para que los veas
+        if (MathUtils.random(0, 2000) < 1) {
+         float x = MathUtils.random(50, Gdx.graphics.getWidth() - 50);
+         float y = Gdx.graphics.getHeight(); // Aparece arriba y baja
+
+         // Cae lentamente
+         powerups.add(new Corazon(x, y, 0, -1.5f, recursos.getTxCorazon()));
+        }
+        
+        if (MathUtils.random(0, 400) < 1) { 
              float x = MathUtils.random(50, Gdx.graphics.getWidth() - 50); 
              float y = MathUtils.random(50, Gdx.graphics.getHeight() - 50);
              
@@ -147,7 +187,11 @@ public class GestorJuego {
                         if (((IDestructible) e).estaDestruido()) {
                             recursos.getSndExplosion().play();
                             enemigos.remove(j);
-                            puntos += (e instanceof Ovni) ? 50 : 10;
+                            if (e instanceof Ovni) {
+                                puntos += ((Ovni) e).getPuntaje(); // 25 o 50
+                            } else {
+                                puntos += 10; // Asteroide
+                            }
                         }
                         break;
                     }
@@ -185,10 +229,10 @@ public class GestorJuego {
     public boolean nivelCompletado() {
         
         for (EntidadMovil e : enemigos) {
-            if (e instanceof IDestructible) {
-                return false; // Aún queda alguien vivo
+            if (e instanceof Ball2) {
+                return false; // Todavía quedan rocas, sigue jugando.
             }
         }
-        return true; // Solo quedan agujeros negros o nada
+        return true; 
     }
 }

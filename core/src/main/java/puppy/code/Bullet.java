@@ -7,6 +7,13 @@ public class Bullet extends EntidadMovil {
 
     public Bullet(float x, float y, float xSpeed, float ySpeed, Texture tx) {
         super(x, y, xSpeed, ySpeed, tx);
+        this.spr.setSize(10, 20); 
+        this.spr.setOriginCenter();
+    }
+    
+    public void setSize(float ancho, float alto) {
+        this.spr.setSize(ancho, alto);
+        this.spr.setOriginCenter();
     }
     
     @Override
